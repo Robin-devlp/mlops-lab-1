@@ -40,3 +40,22 @@ The other options are:
 The credentials should not be pushed to GitHub. The repository is public, so anyone could use the token to access or delete the data on DagsHub. And once something is committed, it stays in the git history even if the file is deleted later.
 
 In my case I added the remote URL at the project level, so it is saved in .dvc/config and pushed to GitHub, and I put the username and token with --local so they stay in .dvc/config.local. This way someone who clones the repo knows where the data is, but the password stays private.
+
+
+Question 4: Take a look at the .gitignore file. Explain what happened.
+
+Before dvc add there was no .gitignore in the repository. dvc add created one containing the line /data, which tells git to ignore the whole data folder. This way the images are never added to git. Instead, DVC tracks the folder: it computed a hash for each of the 16643 files and saved a copy of them in .dvc/cache. After this, git status no longer shows the data folder, only two new small files to commit: .gitignore and data.dvc.
+
+
+Question 5: Do you see a .dvc file? What does it contain?
+
+Yes, dvc add created data.dvc. It is a small text file that points to the data:
+
+    outs:
+    - md5: a3a457d03c51ff8b037a833440f6ad13.dir
+      size: 1188442712
+      nfiles: 16643
+      hash: md5
+      path: data
+
+It contains the md5 hash of the data folder, the total size in bytes (about 1.19 GB), the number of files (16643), the hash algorithm used and the path of the tracked folder. The .dir at the end means the hash is of the folder's file list, where each file has its own hash. Git versions this small file instead of the data, and DVC uses the hash to find the right version of the data in the cache or on the remote.
