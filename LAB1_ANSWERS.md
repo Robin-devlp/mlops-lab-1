@@ -34,3 +34,8 @@ The code is on GitHub but the data is not, there is no data folder there. The fi
 Question 7: In a completely new temporary folder clone your github repo. Do you see the data folder? What dvc command is needed to get the data folder?
 
 No, after git clone the data folder is not there. Git only downloads the code and the data.dvc pointer because the data itself is tracked by DVC and stored on DagsHub. To get it back we run dvc pull, which reads data.dvc and downloads the matching files from the DVC remote. Since config.local is not in git, the username and token have to be set again with --local in the new clone before pulling. In short git brings the code and the pointer while dvc pull brings back the actual dataset.
+
+
+Question 8: Do you still see the new folders you created? food11_processed and food11_processed_mini?
+
+No. After going back to the commit that only tracked the raw data and running dvc checkout, the data folder only had food11_raw and the processed and mini folders were gone. That is because data.dvc in that old commit points to the older version of the data. After git checkout main and dvc checkout again, both folders came back from the local DVC cache without downloading anything.
