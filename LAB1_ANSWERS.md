@@ -24,3 +24,8 @@ dvc add created a .gitignore file with the line /data. This makes git ignore the
 Question 5: Do you see a .dvc file? What does it contain?
 
 Yes, a data.dvc file was created. It contains the md5 hash of the data folder, its size, the number of files and the path. Git tracks this small file instead of the actual data and DVC uses the hash to know which version of the data to get.
+
+
+Question 6: You can check your main branch on the github web UI. Is the code there? Is the data there? Do you have any file that points to the data location. And what about dagshub web UI do you see the data?
+
+The code is on GitHub but the data is not, there is no data folder there. The file that points to the data is data.dvc. It has the hash of the data folder and .dvc/config has the DagsHub URL where the data is stored. On DagsHub I can see the data folder marked as DVC with the training, evaluation and validation folders and all the images inside.
