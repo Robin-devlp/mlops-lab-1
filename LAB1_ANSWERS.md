@@ -29,3 +29,8 @@ Yes, a data.dvc file was created. It contains the md5 hash of the data folder, i
 Question 6: You can check your main branch on the github web UI. Is the code there? Is the data there? Do you have any file that points to the data location. And what about dagshub web UI do you see the data?
 
 The code is on GitHub but the data is not, there is no data folder there. The file that points to the data is data.dvc. It has the hash of the data folder and .dvc/config has the DagsHub URL where the data is stored. On DagsHub I can see the data folder marked as DVC with the training, evaluation and validation folders and all the images inside.
+
+
+Question 7: In a completely new temporary folder clone your github repo. Do you see the data folder? What dvc command is needed to get the data folder?
+
+No, after git clone the data folder is not there. Git only downloads the code and the data.dvc pointer because the data itself is tracked by DVC and stored on DagsHub. To get it back we run dvc pull, which reads data.dvc and downloads the matching files from the DVC remote. Since config.local is not in git, the username and token have to be set again with --local in the new clone before pulling. In short git brings the code and the pointer while dvc pull brings back the actual dataset.
