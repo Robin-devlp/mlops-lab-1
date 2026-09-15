@@ -19,3 +19,13 @@ They are created by running the server and the training and they are not code, s
 Question 4: What happens the first time you call `set_experiment` with a name that doesn't exist yet? Check the mlflow UI.
 
 MLflow checks if an experiment with that name exists and since food11 did not exist it created it automatically and printed that it was creating a new experiment. After refreshing the UI a new experiment called food11 appears next to Default with ID 1 and no runs yet, and its artifacts will be saved in mlruns/1. Calling set_experiment again with the same name does not create a second one and just uses the existing experiment as the active one for the next runs.
+
+
+Question 5: What is the difference between `mlflow.log_param` and `mlflow.log_metric`? Why does `log_metric` take a `step` argument and `log_param` doesn't?
+
+log_param saves a setting that is chosen before training and stays the same for the whole run, like the learning rate or the batch size, so it is logged once as a single value. log_metric saves a number that comes out of the training and can change over time, like the loss or the accuracy. That is why log_metric takes a step, so each value is saved with the epoch it belongs to and mlflow can draw how it changes during training. In my run train_loss, val_loss and val_accuracy each have 5 values for steps 1 to 5 while lr only has one value, and a param cannot be logged again with a different value in the same run.
+
+
+Question 6: Open the run in the mlflow UI. Find the params, the metric charts, and the logged model artifact. Where does the model artifact actually live on disk?
+
+On the run page I can see the params like lr 0.001, batch_size 32, epochs 5 and dataset mini, and the metric charts for train_loss, val_loss and val_accuracy over the 5 epochs together with the final test_accuracy. The model is listed as a logged model called model that is linked to the run. It does not live in the run's own artifacts folder, which is empty, but in mlruns/1/models/m-bf4ebc2e363b434a942425ad8a7eecda/artifacts inside the repo. That folder has data/model.pt2 with the trained model which is about 44 MB, the MLmodel file that describes it and the requirements and input example files, while mlflow.db only stores the path to it.
