@@ -14,3 +14,8 @@ Question 2: What is `--backend-store-uri` used for? What is `--default-artifact-
 Question 3: Why shouldn't `mlflow.db` and `mlruns/` be tracked by git, and why shouldn't they be tracked by dvc either?
 
 They are created by running the server and the training and they are not code, so git is not the right place for them. mlflow.db is a binary database that changes every time a run is logged and mlruns will hold the saved models, so they would make the git history heavy and cause conflicts since everyone has their own local runs. DVC is not a good fit either because it is meant for versioning the data that the code uses, not the results of experiments. MLflow already keeps track of every run with its own run IDs, params, metrics and saved models, so tracking these files with DVC would only duplicate that while the database keeps changing as long as the server is running.
+
+
+Question 4: What happens the first time you call `set_experiment` with a name that doesn't exist yet? Check the mlflow UI.
+
+MLflow checks if an experiment with that name exists and since food11 did not exist it created it automatically and printed that it was creating a new experiment. After refreshing the UI a new experiment called food11 appears next to Default with ID 1 and no runs yet, and its artifacts will be saved in mlruns/1. Calling set_experiment again with the same name does not create a second one and just uses the existing experiment as the active one for the next runs.
