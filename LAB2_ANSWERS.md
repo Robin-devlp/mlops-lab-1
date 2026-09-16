@@ -29,3 +29,18 @@ log_param saves a setting that is chosen before training and stays the same for 
 Question 6: Open the run in the mlflow UI. Find the params, the metric charts, and the logged model artifact. Where does the model artifact actually live on disk?
 
 On the run page I can see the params like lr 0.001, batch_size 32, epochs 5 and dataset mini, and the metric charts for train_loss, val_loss and val_accuracy over the 5 epochs together with the final test_accuracy. The model is listed as a logged model called model that is linked to the run. It does not live in the run's own artifacts folder, which is empty, but in mlruns/1/models/m-bf4ebc2e363b434a942425ad8a7eecda/artifacts inside the repo. That folder has data/model.pt2 with the trained model which is about 44 MB, the MLmodel file that describes it and the requirements and input example files, while mlflow.db only stores the path to it.
+
+
+Question 7: In the mlflow UI, open the `food11` experiment. Select these runs and click "Compare". Which learning rate gave the best `val_accuracy`? Is higher always better?
+
+The learning rate 0.0001 gave the best val_accuracy with 0.732, then 0.001 with 0.592, and 0.01 was the worst with only 0.128, which is barely better than guessing between 11 classes. So a higher learning rate is not always better. With 0.01 the updates are too big and they break the pretrained weights, the val_loss jumped to 10.8 after the first epoch and the model never recovered. Since resnet18 is already pretrained it only needs small adjustments, so a small learning rate works better here.
+
+
+Question 8: Use the parallel coordinates plot on the compare page to look at `lr`, `batch_size` and `val_accuracy` together. What pattern do you see?
+
+The lines that start from a lower lr end at a higher val_accuracy, so the accuracy goes up as the learning rate goes down from 0.01 to 0.0001. The learning rate is clearly the setting that matters the most in these runs. Changing the batch size from 32 to 64 with the same lr of 0.001 only changed the val_accuracy a little, 0.592 against 0.578, so the batch size had a much smaller effect. There is only one run with batch size 64 though, so it is hard to say more about it.
+
+
+Question 9: Sort the runs table by `val_accuracy` descending. Which run is the best one? Note its run ID, you'll need it in the next lab.
+
+The best run is zealous-turtle-10 with lr 0.0001 and batch size 32. It has a val_accuracy of 0.732 and a test accuracy of 0.765. Its run ID is 0a5933c76733421ebc58ed50dc614820.
