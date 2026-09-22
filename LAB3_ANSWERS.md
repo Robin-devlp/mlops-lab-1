@@ -31,3 +31,7 @@ Inside the container 127.0.0.1 means the container itself, since it has its own 
 ### Question 8: Stop the container and start a new one from the same image. Does the model still load correctly without you rebuilding? What does that tell you about what's baked into the image versus fetched at runtime?
 
 Yes, a new container from the same image started in 17 seconds and gave the same prediction without rebuilding. The image only contains the code and the Python environment, and I checked that it has no model file inside. The model is fetched from MLflow every time the container starts, so moving the champion alias to a new version would only need a restart, not a new image.
+
+### Question 9: The Dockerfile and image are versioned differently — one lives in git, the other doesn't (yet). What's still missing before another machine (like a CI runner or a Kubernetes cluster) could reliably pull and run the exact image you just built?
+
+The image only exists on my laptop and was never pushed anywhere, so it has to be pushed to a registry like Docker Hub or GitHub's registry that other machines can pull from. It also needs a fixed tag like the git commit hash instead of latest, so everyone runs the exact same image. The container also depends on my local MLflow server and mlruns folder, so a shared tracking server and artifact store would be needed too.
