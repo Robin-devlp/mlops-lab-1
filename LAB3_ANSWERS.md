@@ -27,3 +27,7 @@ Without it Docker has to send the whole project folder, about 4.1 GB with data, 
 ### Question 7: Why can't the container simply use `127.0.0.1:5000` to reach the mlflow server on your host? What does `host.docker.internal` resolve to?
 
 Inside the container 127.0.0.1 means the container itself, since it has its own network with the IP 172.17.0.2. From inside it 127.0.0.1:8000 answered because that is its own API, but 127.0.0.1:5000 was refused because MLflow runs on my laptop, not in the container. host.docker.internal is a name Docker Desktop adds that resolves to the host, here 192.168.65.254.
+
+### Question 8: Stop the container and start a new one from the same image. Does the model still load correctly without you rebuilding? What does that tell you about what's baked into the image versus fetched at runtime?
+
+Yes, a new container from the same image started in 17 seconds and gave the same prediction without rebuilding. The image only contains the code and the Python environment, and I checked that it has no model file inside. The model is fetched from MLflow every time the container starts, so moving the champion alias to a new version would only need a restart, not a new image.
