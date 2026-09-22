@@ -19,3 +19,7 @@ pyproject.toml and uv.lock rarely change while the code changes all the time, an
 ### Question 5: What's the size difference between a naive single-stage image and your multi-stage one? Use `docker history <image>` to see which layers are the biggest.
 
 My multi-stage image is 1.99 GB and the naive single-stage one is 2.08 GB, about 90 MB more. docker history shows the biggest layer in both is the 1.43 GB virtual environment, mostly torch. The naive image also keeps uv itself, a 60 MB layer, and all the copied files. Without the build cache mount it would also keep uv's 1.4 GB download cache, so about 3.5 GB.
+
+### Question 6: What happens to build speed and image size if you forget the `.dockerignore`? Which of the excluded folders would actually break the build if they were sent to the Docker daemon?
+
+Without it Docker has to send the whole project folder, about 4.1 GB with data, the .dvc cache, .venv and mlruns, instead of 484 kB, so every build starts much slower. My image would stay the same size because the Dockerfile only copies pyproject.toml, uv.lock and src/, but a COPY . . would put all of it inside. The .venv is the one that breaks things, since it is a Windows environment and would replace the Linux one.
