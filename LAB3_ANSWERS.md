@@ -15,3 +15,7 @@ With models:/food11@champion the code does not need to know where the model file
 ### Question 4: Why copy `pyproject.toml`/`uv.lock` and run `uv sync` *before* copying the rest of the source code, instead of copying everything at once? What happens to the build cache when you only change a line in `serve.py`?
 
 pyproject.toml and uv.lock rarely change while the code changes all the time, and Docker only reuses a cached layer if that step and all the ones before it are unchanged. When I added one line to serve.py and rebuilt, every step including uv sync was cached and only COPY src/ ran again, so it took 3 seconds instead of 27 minutes. If everything was copied at once, any code change would rerun uv sync.
+
+### Question 5: What's the size difference between a naive single-stage image and your multi-stage one? Use `docker history <image>` to see which layers are the biggest.
+
+My multi-stage image is 1.99 GB and the naive single-stage one is 2.08 GB, about 90 MB more. docker history shows the biggest layer in both is the 1.43 GB virtual environment, mostly torch. The naive image also keeps uv itself, a 60 MB layer, and all the copied files. Without the build cache mount it would also keep uv's 1.4 GB download cache, so about 3.5 GB.
