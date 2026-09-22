@@ -11,3 +11,7 @@ The old stages Staging, Production and Archived were replaced by aliases, names 
 ### Question 3: Why load the model through an mlflow model URI (`models:/food11@champion`) instead of pointing directly at the `.pth` file on disk? What would you have to change to serve a newer model version?
 
 With models:/food11@champion the code does not need to know where the model file is, since MLflow finds the version the alias points to and loads it. A file path would tie the code to one machine, and my model is a model.pt2 under a generated ID anyway. To serve a newer version I would register it, move the champion alias to it and restart the service, with no code change.
+
+### Question 4: Why copy `pyproject.toml`/`uv.lock` and run `uv sync` *before* copying the rest of the source code, instead of copying everything at once? What happens to the build cache when you only change a line in `serve.py`?
+
+pyproject.toml and uv.lock rarely change while the code changes all the time, and Docker only reuses a cached layer if that step and all the ones before it are unchanged. When I added one line to serve.py and rebuilt, every step including uv sync was cached and only COPY src/ ran again, so it took 3 seconds instead of 27 minutes. If everything was copied at once, any code change would rerun uv sync.
