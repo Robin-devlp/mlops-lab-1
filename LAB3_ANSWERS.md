@@ -23,3 +23,7 @@ My multi-stage image is 1.99 GB and the naive single-stage one is 2.08 GB, about
 ### Question 6: What happens to build speed and image size if you forget the `.dockerignore`? Which of the excluded folders would actually break the build if they were sent to the Docker daemon?
 
 Without it Docker has to send the whole project folder, about 4.1 GB with data, the .dvc cache, .venv and mlruns, instead of 484 kB, so every build starts much slower. My image would stay the same size because the Dockerfile only copies pyproject.toml, uv.lock and src/, but a COPY . . would put all of it inside. The .venv is the one that breaks things, since it is a Windows environment and would replace the Linux one.
+
+### Question 7: Why can't the container simply use `127.0.0.1:5000` to reach the mlflow server on your host? What does `host.docker.internal` resolve to?
+
+Inside the container 127.0.0.1 means the container itself, since it has its own network with the IP 172.17.0.2. From inside it 127.0.0.1:8000 answered because that is its own API, but 127.0.0.1:5000 was refused because MLflow runs on my laptop, not in the container. host.docker.internal is a name Docker Desktop adds that resolves to the host, here 192.168.65.254.
