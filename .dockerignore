@@ -1,0 +1,11 @@
+# the image only needs pyproject.toml, uv.lock and src/
+.venv/
+data/
+mlruns/
+mlflow.db
+.git/
+# the DVC cache holds another copy of the whole dataset
+.dvc/
+__pycache__/
+**/__pycache__/
+*.pyc
