@@ -1,0 +1,32 @@
+services:
+  mlflow:
+    build: ./mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      # mlflow only accepts requests addressed to localhost by default, as a
+      # protection against DNS rebinding. Inside the compose network the other
+      # services address this server as "mlflow", so that name has to be
+      # allowed too, otherwise every call from them is refused with a 403.
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:*,localhost:*,127.0.0.1:*"
+    volumes:
+      - mlflow-data:/mlflow-data
+
+  inference:
+    build: .
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    depends_on:
+      - mlflow
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+    environment:
+      INFERENCE_URL: http://inference:8000
+    depends_on:
+      - inference
+
+volumes:
+  mlflow-data:
