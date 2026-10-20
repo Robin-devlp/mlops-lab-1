@@ -35,3 +35,13 @@ It fails to start. My serve.py loads the model at startup, through the champion 
 frontend shows 0.0.0.0:8501->8501/tcp and mlflow shows 0.0.0.0:5000->5000/tcp, while inference only shows 8000/tcp with no arrow, so nothing is mapped to my laptop. That matches the file, where only those two services have a ports section. The inference port comes from EXPOSE in its Dockerfile and is reachable inside the compose network only.
 
 ![docker compose ps: frontend and mlflow map a port to the host, inference only exposes 8000 inside the network](lab4-q7-compose-ps.png)
+
+### Question 8: Refresh the frontend and upload an image again. Does the prediction come from the new model version, or the old one? Your `serve.py` loads the model once, at startup — what single command lets you pick up the new Staging version without rebuilding any image?
+
+It still came from the old one. I registered a second model as version 2 and moved the champion alias to it, then uploaded the same image and got Soup 47.0% again, because the container had loaded version 1 at startup and still held it in memory. The single command is docker compose restart inference, and after it the same image returned Egg 48.3%.
+
+![the food11 registry after promoting: version 2 now holds the champion alias and version 1 has none](lab4-q8-champion-v2.png)
+
+### Question 9: Why does `restart` alone work here — no rebuild needed? What does that tell you about what's baked into the inference image versus fetched at container startup?
+
+Because the image only contains my code and its python environment, while the model itself is fetched from mlflow every time the process starts. Restarting runs that startup again, so it asks for champion and this time receives version 2. The image id stayed the same, so nothing was rebuilt. Only changing the code or the dependencies would need a new image.
