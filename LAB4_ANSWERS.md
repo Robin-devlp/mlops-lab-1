@@ -11,3 +11,21 @@ Everything written to /mlflow-data goes into the container's own writable layer,
 ### Question 2: Why a named volume here instead of a bind mount to a folder in your repo (the way you might for local dev)? Would a bind mount work just as well?
 
 A named volume is managed by Docker itself, so it works the same on any machine without depending on a path inside my repo. A bind mount would also keep the data, but it would drop mlflow's database and artifacts into my project folder where git and dvc would pick them up, and SQLite on a Windows bind mount can hit file locking problems.
+
+### Question 3: In Lab 3 you had to use `host.docker.internal` or `--network host` to reach mlflow from inside the container. In this lab, `MLFLOW_TRACKING_URI` will simply be `http://mlflow:5000`. Why does that hostname resolve now when it didn't before?
+
+Because compose creates a private network for the project and runs its own DNS on it, so every service name resolves to that service's container. From inside the inference container mlflow resolves to 172.18.0.2. In Lab 3 the container was not on such a network, the name mlflow meant nothing there, and mlflow was on my laptop rather than in a container.
+
+### Question 4: Why does the frontend read `INFERENCE_URL` from an environment variable instead of hardcoding `http://inference:8000`? Think about what happens if you ever `docker run` this frontend image on its own, outside Compose.
+
+Because the name inference only exists inside the compose network. Outside it that address resolves to nothing, so a hardcoded image would be useless on its own. Reading the value from the environment keeps the same image usable anywhere, pointed at a published port or at another machine, and compose just sets the variable to the service name.
+
+### Question 5: Only `mlflow` and `frontend` publish a port to the host. `inference` doesn't. Why not, and how does the frontend still reach it?
+
+Nobody needs to open the API in a browser, only the frontend talks to it, and that traffic never leaves the compose network, so publishing a port would expose it for no reason. The frontend reaches it by service name at http://inference:8000. From my laptop 127.0.0.1:8000 answers nothing, while the page on 8501 still returns predictions.
+
+![the frontend on port 8501 returning a prediction that came from the inference service, which publishes no port](lab4-q5-frontend.png)
+
+### Question 6: `depends_on` here only waits for the mlflow *container process* to start, not for the tracking server inside it to be ready to accept connections. If your `serve.py` tries to load the Staging model at startup and mlflow isn't ready yet, what happens to the `inference` container? Look at `docker compose logs inference` if it fails.
+
+It fails to start. My serve.py loads the model at startup, through the champion alias since stages are deprecated in mlflow 3, so with mlflow stopped the client retried for about five minutes and then the container exited with code 3. The log ends with Max retries exceeded for http://mlflow:5000 and Application startup failed.
