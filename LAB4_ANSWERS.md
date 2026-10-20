@@ -38,7 +38,7 @@ frontend shows 0.0.0.0:8501->8501/tcp and mlflow shows 0.0.0.0:5000->5000/tcp, w
 
 ### Question 8: Refresh the frontend and upload an image again. Does the prediction come from the new model version, or the old one? Your `serve.py` loads the model once, at startup — what single command lets you pick up the new Staging version without rebuilding any image?
 
-It still came from the old one. I registered a second model as version 2 and moved the champion alias to it, then uploaded the same image and got Soup 47.0% again, because the container had loaded version 1 at startup and still held it in memory. The single command is docker compose restart inference, and after it the same image returned Egg 48.3%.
+It still came from the old one. I registered a second model as version 2 and moved the champion alias to it, then uploaded the same image and got Soup 47.0% again, because the container had loaded version 1 at startup and still held it in memory. The single command is docker compose restart inference, and after it the same picture returned Egg 48.3%.
 
 ![the food11 registry after promoting: version 2 now holds the champion alias and version 1 has none](images/lab4-q8-champion-v2.png)
 
