@@ -4,9 +4,9 @@
 
 Everything written to /mlflow-data goes into the container's own writable layer, which is deleted together with the container. I created an experiment called q1-volume-demo, then stopped and removed the container and started a new one from the same image. The UI then shows only Default, the experiment is gone and mlflow.db is a brand new empty database.
 
-![before: the UI of the first container, with the q1-volume-demo experiment I created](lab4-q1-before.png)
+![before: the UI of the first container, with the q1-volume-demo experiment I created](images/lab4-q1-before.png)
 
-![after: a new container from the same image, where only Default is left](lab4-q1-after.png)
+![after: a new container from the same image, where only Default is left](images/lab4-q1-after.png)
 
 ### Question 2: Why a named volume here instead of a bind mount to a folder in your repo (the way you might for local dev)? Would a bind mount work just as well?
 
@@ -24,7 +24,7 @@ Because the name inference only exists inside the compose network. Outside it th
 
 Nobody needs to open the API in a browser, only the frontend talks to it, and that traffic never leaves the compose network, so publishing a port would expose it for no reason. The frontend reaches it by service name at http://inference:8000. From my laptop 127.0.0.1:8000 answers nothing, while the page on 8501 still returns predictions.
 
-![the frontend on port 8501 returning a prediction that came from the inference service, which publishes no port](lab4-q5-frontend.png)
+![the frontend on port 8501 returning a prediction that came from the inference service, which publishes no port](images/lab4-q5-frontend.png)
 
 ### Question 6: `depends_on` here only waits for the mlflow *container process* to start, not for the tracking server inside it to be ready to accept connections. If your `serve.py` tries to load the Staging model at startup and mlflow isn't ready yet, what happens to the `inference` container? Look at `docker compose logs inference` if it fails.
 
@@ -34,13 +34,13 @@ It fails to start. My serve.py loads the model at startup, through the champion 
 
 frontend shows 0.0.0.0:8501->8501/tcp and mlflow shows 0.0.0.0:5000->5000/tcp, while inference only shows 8000/tcp with no arrow, so nothing is mapped to my laptop. That matches the file, where only those two services have a ports section. The inference port comes from EXPOSE in its Dockerfile and is reachable inside the compose network only.
 
-![docker compose ps: frontend and mlflow map a port to the host, inference only exposes 8000 inside the network](lab4-q7-compose-ps.png)
+![docker compose ps: frontend and mlflow map a port to the host, inference only exposes 8000 inside the network](images/lab4-q7-compose-ps.png)
 
 ### Question 8: Refresh the frontend and upload an image again. Does the prediction come from the new model version, or the old one? Your `serve.py` loads the model once, at startup — what single command lets you pick up the new Staging version without rebuilding any image?
 
 It still came from the old one. I registered a second model as version 2 and moved the champion alias to it, then uploaded the same image and got Soup 47.0% again, because the container had loaded version 1 at startup and still held it in memory. The single command is docker compose restart inference, and after it the same image returned Egg 48.3%.
 
-![the food11 registry after promoting: version 2 now holds the champion alias and version 1 has none](lab4-q8-champion-v2.png)
+![the food11 registry after promoting: version 2 now holds the champion alias and version 1 has none](images/lab4-q8-champion-v2.png)
 
 ### Question 9: Why does `restart` alone work here — no rebuild needed? What does that tell you about what's baked into the inference image versus fetched at container startup?
 
