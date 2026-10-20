@@ -29,3 +29,9 @@ Nobody needs to open the API in a browser, only the frontend talks to it, and th
 ### Question 6: `depends_on` here only waits for the mlflow *container process* to start, not for the tracking server inside it to be ready to accept connections. If your `serve.py` tries to load the Staging model at startup and mlflow isn't ready yet, what happens to the `inference` container? Look at `docker compose logs inference` if it fails.
 
 It fails to start. My serve.py loads the model at startup, through the champion alias since stages are deprecated in mlflow 3, so with mlflow stopped the client retried for about five minutes and then the container exited with code 3. The log ends with Max retries exceeded for http://mlflow:5000 and Application startup failed.
+
+### Question 7: Run `docker compose ps`. Which services have a published port listed, and which don't? Does that match what you'd expect from the `docker-compose.yml`?
+
+frontend shows 0.0.0.0:8501->8501/tcp and mlflow shows 0.0.0.0:5000->5000/tcp, while inference only shows 8000/tcp with no arrow, so nothing is mapped to my laptop. That matches the file, where only those two services have a ports section. The inference port comes from EXPOSE in its Dockerfile and is reachable inside the compose network only.
+
+![docker compose ps: frontend and mlflow map a port to the host, inference only exposes 8000 inside the network](lab4-q7-compose-ps.png)
