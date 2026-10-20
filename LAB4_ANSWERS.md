@@ -45,3 +45,7 @@ It still came from the old one. I registered a second model as version 2 and mov
 ### Question 9: Why does `restart` alone work here — no rebuild needed? What does that tell you about what's baked into the inference image versus fetched at container startup?
 
 Because the image only contains my code and its python environment, while the model itself is fetched from mlflow every time the process starts. Restarting runs that startup again, so it asks for champion and this time receives version 2. The image id stayed the same, so nothing was rebuilt. Only changing the code or the dependencies would need a new image.
+
+### Question 10: Is your registered model and its Staging assignment still there after this `down`/`up` cycle? Now try `docker compose down -v` followed by `docker compose up` — what's different this time, and why?
+
+Yes. After down and up the registry still had versions 1 and 2 with champion on version 2, because down only removes the containers and the network while the named volume stays. With down -v the volume is deleted too, so the new mlflow started on an empty database with no registered models and only the Default experiment, and inference exited again saying food11 was not found.
