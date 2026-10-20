@@ -49,3 +49,7 @@ Because the image only contains my code and its python environment, while the mo
 ### Question 10: Is your registered model and its Staging assignment still there after this `down`/`up` cycle? Now try `docker compose down -v` followed by `docker compose up` — what's different this time, and why?
 
 Yes. After down and up the registry still had versions 1 and 2 with champion on version 2, because down only removes the containers and the network while the named volume stays. With down -v the volume is deleted too, so the new mlflow started on an empty database with no registered models and only the Default experiment, and inference exited again saying food11 was not found.
+
+### Question 11: This compose file is still meant to run on one machine. What would have to change for the `inference` service to run as three replicas behind a load balancer, or for the mlflow service to survive a machine failure? (You don't need to implement this — just name what Docker Compose can't give you here.)
+
+Compose only runs containers on one host, so it cannot spread replicas across machines or move them if that machine dies. Three inference replicas behind a load balancer need an orchestrator like Kubernetes, with a service in front to share the traffic. For mlflow to survive a machine failure its data cannot sit in a local volume, it needs a managed database and object storage instead.
