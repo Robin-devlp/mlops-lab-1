@@ -19,3 +19,13 @@ Check 4, the leakage check, caught it: evaluation/training went from 12 to 13, w
 ### Question 4: Your CI runner cannot see your data (it is in DVC, and maybe in a local remote). Where in your workflow should `validate_data.py` run so that it still protects you? Give two places.
 
 First, right after data.py builds the processed folders and before dvc add and dvc push, for example as a pre-push hook on my laptop, so broken data never gets a version. Second, at the start of training before the model sees any data, so no run is trained on data that breaks the contract. A CI job could also run it after a dvc pull from DagsHub, with the token stored as a secret.
+
+### Question 5: The `smoke` job has `needs: test`. What happens to it if a unit test fails? What would happen without `needs`?
+
+With needs: test the smoke job only starts once test has succeeded, and if a unit test fails it is skipped, so no time goes into building an image from broken code. In my first run smoke waited for test, which took 21 seconds, and then ran for 1m 28s. Without needs both jobs would start at the same time, so the image would be built and probed even when the tests fail.
+
+![my first pipeline run: test passes in 21s and only then smoke builds and probes the image](images/lab5-q5-ci-run.png)
+
+### Question 6: How long did the whole run take? Run it a second time (push an empty commit with `git commit --allow-empty -m "ci"`) and compare. Which step got faster, and why?
+
+The first run took 1m 57s and the second about 2 minutes, so nothing really got faster. The uv cache from enable-cache was saved after run 1 and restored in run 2, but it was only 3 KB, because setup-uv drops downloaded packages before saving, and uv sync already took 4 seconds on GitHub's fast network. The slow step is the 80 second docker build, which the smoke job does not cache at all.
