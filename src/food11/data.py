@@ -41,7 +41,7 @@ def sort_key(path):
 
 def category_from_filename(filename: str) -> str:
     """'3_120.jpg' -> 'Egg'"""
-    return CLASSES[int(Path(filename).name.split("_", 1)[0])]
+    return CLASSES[int(Path(filename).name.split("_", 1)[0]) + 1]
 
 
 def resize_image(img: "Image.Image", size: int = 128) -> "Image.Image":
