@@ -47,3 +47,13 @@ The page showed 2 failing and 4 skipped checks: test failed for both the push an
 ![the pull request with the broken test: test fails, smoke is skipped and merging is blocked](images/lab5-q9-pr-blocked.png)
 
 ![the same pull request after the fix: all 6 checks passed and it was merged into main](images/lab5-q9-pr-merged.png)
+
+### Question 10: For each candidate, what did the gate decide, and with which numbers? With your test-set size, how many accuracy points does `2 * se` represent?
+
+The champion was version 2 at 0.5958, and with n = 1096 its se was 0.0148, so a candidate needed at least 0.6254. Version 3, trained with a learning rate of 0.000001, got 0.1286 and became the challenger while champion stayed on version 2. Version 4 with my best settings got 0.7646 and was promoted. With my test set 2 * se is about 3 accuracy points, and about 2.6 around the new champion's 76%.
+
+![the registry after the gate: version 4 promoted to champion, version 3 kept as challenger, with the decision and both accuracies as tags](images/lab5-q10-gate.png)
+
+### Question 11: `promote.py` needs to reach your MLflow server, so it cannot run in GitHub's cloud runners while MLflow lives on your laptop. Name two ways to make it run automatically after training. (Hint: DagsHub also offers a hosted MLflow server per repository.)
+
+First, move MLflow off my laptop, for example to the hosted MLflow server DagsHub gives every repository, store its token as a GitHub secret and add a workflow job that runs promote.py after training. Second, keep MLflow local and run the gate where it can be reached: call promote.py at the end of train.py, or register a self-hosted GitHub runner on my laptop so the workflow job runs on a machine that sees the server.
