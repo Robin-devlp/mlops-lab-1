@@ -29,3 +29,13 @@ With needs: test the smoke job only starts once test has succeeded, and if a uni
 ### Question 6: How long did the whole run take? Run it a second time (push an empty commit with `git commit --allow-empty -m "ci"`) and compare. Which step got faster, and why?
 
 The first run took 1m 57s and the second about 2 minutes, so nothing really got faster. The uv cache from enable-cache was saved after run 1 and restored in run 2, but it was only 3 KB, because setup-uv drops downloaded packages before saving, and uv sync already took 4 seconds on GitHub's fast network. The slow step is the 80 second docker build, which the smoke job does not cache at all.
+
+### Question 7: This answers Question 9 of Lab 3. Why tag with the commit SHA rather than `latest`? Describe a concrete situation where `latest` leads two machines to run different code.
+
+A SHA tag points to one build of one exact commit and never moves, so the image can always be traced back to its code and pulled again identically. latest moves with every push: if one server pulls it on Monday and a second one on Wednesday after I pushed a change, both say latest but run different code. This happened to me with python:3.13-slim, which now points to a different image than in Lab 3.
+
+![my image published under its commit SHA instead of latest](images/lab5-q7-package.png)
+
+### Question 8: Why does the `push` job declare `permissions:` explicitly? What could a compromised step do with a token that had write access to everything in the repo?
+
+So the token only gets what this job needs, reading the code and writing packages, and nothing more. Every step can read that token, including third party actions like docker/build-push-action, so a compromised one could only push images. With write access to everything it could push malicious commits to main, delete branches and tags, or publish a release with a backdoor that everyone then runs.
