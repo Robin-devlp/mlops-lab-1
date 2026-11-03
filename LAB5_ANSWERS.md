@@ -9,3 +9,13 @@ A unit test should only check my own code, quickly and the same way every time, 
 It proves the code around the model works: the endpoint accepts an upload, decodes the JPEG, maps the top score to the right class name and returns JSON with a confidence between 0 and 1. It does not prove the real model loads from MLflow or predicts well. My serve.py applies a softmax, so the fake 0.90 came back as 0.1958, and the test still passed since it only checks the range.
 
 ![the five unit tests passing in about a second, with the fake model instead of MLflow](images/lab5-q2-pytest.png)
+
+### Question 3: Which check caught it? Why is a train/test duplicate more dangerous than a corrupted image, even though the corrupted image makes the training script crash and the duplicate does not?
+
+Check 4, the leakage check, caught it: evaluation/training went from 12 to 13, while every other check passed because the copy is a valid 128x128 RGB image. A corrupted image crashes training loudly, so it gets fixed. A duplicate fails silently, since the model is tested on a picture it already saw and the test accuracy looks better than it is. My mini data already had 49 such duplicates from the original dataset.
+
+![my data contract on the real mini dataset: four checks pass and the leakage check fails on the 49 images already shared between splits](images/lab5-q3-data-contract.png)
+
+### Question 4: Your CI runner cannot see your data (it is in DVC, and maybe in a local remote). Where in your workflow should `validate_data.py` run so that it still protects you? Give two places.
+
+First, right after data.py builds the processed folders and before dvc add and dvc push, for example as a pre-push hook on my laptop, so broken data never gets a version. Second, at the start of training before the model sees any data, so no run is trained on data that breaks the contract. A CI job could also run it after a dvc pull from DagsHub, with the token stored as a secret.
