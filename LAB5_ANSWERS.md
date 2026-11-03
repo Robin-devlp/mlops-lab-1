@@ -60,4 +60,47 @@ First, move MLflow off my laptop, for example to the hosted MLflow server DagsHu
 
 ### Question 12: Draw (in `lab/lab5.md`) the pipeline you now have, from `git push` to a running container. Mark which steps are automatic, which still need a human, and where the code version and the model version are decided.
 
-My drawing is in lab/lab5.md. Everything between a push and a published image is automatic: GitHub runs ruff and pytest, builds and probes the container, and on main pushes the image to ghcr.io. A human still merges pull requests, prepares and validates the data, trains, registers and runs promote.py, and starts the containers. The code version is decided by the commit SHA in the image tag, and the model version by the champion alias that promote.py moves.
+My drawing is below, green steps are automatic and yellow ones need me. Everything between a push and a published image is automatic: GitHub runs ruff and pytest, builds and probes the container, and on main pushes the image to ghcr.io. A human still merges pull requests, prepares and validates the data, trains, registers and runs promote.py, and starts the containers. The code version is decided by the commit SHA in the image tag, and the model version by the champion alias that promote.py moves.
+
+```mermaid
+flowchart TD
+    classDef human fill:#ffd88a,stroke:#b8860b,color:#000
+    classDef auto fill:#a8e6b4,stroke:#2e7d32,color:#000
+    classDef store fill:#d5dde2,stroke:#455a64,color:#000
+
+    subgraph CODE["Code"]
+        commit["git push, or a pull request"]:::human
+        test["test job: ruff + pytest"]:::auto
+        smoke["smoke job: docker build + /health with SKIP_MODEL"]:::auto
+        merge["merge the pull request once test and smoke are green"]:::human
+        publish["push job, main only: build and push the image"]:::auto
+        image[("ghcr.io/robin-devlp/mlops-lab-1:commit SHA<br/>CODE VERSION = commit SHA")]:::store
+    end
+
+    subgraph MODEL["Model"]
+        prep["data.py builds the processed data"]:::human
+        validate["validate_data.py checks the data contract, then dvc push"]:::human
+        train["train.py trains and logs a run to MLflow"]:::human
+        register["register the run as a new food11 version"]:::human
+        gate["promote.py: promote only if accuracy >= champion + 2 se"]:::human
+        registry[("MLflow registry: food11@champion<br/>MODEL VERSION = champion alias")]:::store
+    end
+
+    subgraph RUN["Running"]
+        deploy["docker pull the image by its SHA, then docker compose up"]:::human
+        serve["inference loads models:/food11@champion at startup"]:::auto
+    end
+
+    commit --> test --> smoke
+    smoke -- pull request --> merge --> publish
+    smoke -- push to main --> publish
+    publish --> image
+    prep --> validate --> train --> register --> gate --> registry
+    image --> deploy --> serve
+    registry --> serve
+
+    subgraph LEGEND["Legend"]
+        h["needs a human"]:::human
+        a["automatic"]:::auto
+    end
+```
