@@ -57,3 +57,7 @@ The champion was version 2 at 0.5958, and with n = 1096 its se was 0.0148, so a 
 ### Question 11: `promote.py` needs to reach your MLflow server, so it cannot run in GitHub's cloud runners while MLflow lives on your laptop. Name two ways to make it run automatically after training. (Hint: DagsHub also offers a hosted MLflow server per repository.)
 
 First, move MLflow off my laptop, for example to the hosted MLflow server DagsHub gives every repository, store its token as a GitHub secret and add a workflow job that runs promote.py after training. Second, keep MLflow local and run the gate where it can be reached: call promote.py at the end of train.py, or register a self-hosted GitHub runner on my laptop so the workflow job runs on a machine that sees the server.
+
+### Question 12: Draw (in `lab/lab5.md`) the pipeline you now have, from `git push` to a running container. Mark which steps are automatic, which still need a human, and where the code version and the model version are decided.
+
+My drawing is in lab/lab5.md. Everything between a push and a published image is automatic: GitHub runs ruff and pytest, builds and probes the container, and on main pushes the image to ghcr.io. A human still merges pull requests, prepares and validates the data, trains, registers and runs promote.py, and starts the containers. The code version is decided by the commit SHA in the image tag, and the model version by the champion alias that promote.py moves.
