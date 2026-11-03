@@ -6,8 +6,8 @@ Run locally from the repo root:
 import io
 import os
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-import mlflow
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -35,11 +35,22 @@ MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 
+# the loaded model lives at module level so tests can replace it with a fake one
+model = None
+
+
 @asynccontextmanager
 async def lifespan(app):
-    # load the model once at startup instead of on every request
-    mlflow.set_tracking_uri(TRACKING_URI)
-    app.state.model = mlflow.pyfunc.load_model(MODEL_URI)
+    global model
+    # load the model once at startup instead of on every request, unless
+    # SKIP_MODEL is set (unit tests and the CI smoke test have no MLflow server)
+    if not os.environ.get("SKIP_MODEL"):
+        # imported here because mlflow takes several seconds to import, and the
+        # tests and the smoke test never need it
+        import mlflow
+
+        mlflow.set_tracking_uri(TRACKING_URI)
+        model = mlflow.pyfunc.load_model(MODEL_URI)
     yield
 
 
@@ -61,12 +72,14 @@ def health():
 
 
 @app.post("/predict")
-def predict(file: UploadFile = File(...)):
+def predict(file: Annotated[UploadFile, File()]):
+    if model is None:
+        raise HTTPException(status_code=503, detail="The model is not loaded")
     try:
         batch = preprocess(file.file.read())
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="The uploaded file is not an image")
-    logits = np.asarray(app.state.model.predict(batch))[0]
+    logits = np.asarray(model.predict(batch))[0]
     # softmax turns the 11 raw scores into probabilities that add up to 1
     probs = np.exp(logits - logits.max())
     probs /= probs.sum()

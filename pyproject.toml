@@ -33,3 +33,21 @@ explicit = true
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }
 torchvision = { index = "pytorch-cpu" }
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+
+[tool.pytest.ini_options]
+# run the tests from the repo root so "import src.food11..." works like in the container
+pythonpath = ["."]
+# only look in tests/, otherwise pytest walks through the ~50k images in data/
+testpaths = ["tests"]
+
+[tool.ruff.lint.isort]
+# the mlflow/ folder at the repo root only holds the Lab 4 Dockerfile, so tell
+# ruff that "mlflow" is the installed library and not a package of this project
+known-third-party = ["mlflow"]

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-CATEGORIES = [
+CLASSES = [
     "Bread",
     "Dairy product",
     "Dessert",
@@ -39,18 +39,27 @@ def sort_key(path):
     return int(category), int(index)
 
 
+def category_from_filename(filename: str) -> str:
+    """'3_120.jpg' -> 'Egg'"""
+    return CLASSES[int(Path(filename).name.split("_", 1)[0])]
+
+
+def resize_image(img: "Image.Image", size: int = 128) -> "Image.Image":
+    """Returns an RGB image of size x size."""
+    # crop the centre to a square first so non-square images are not stretched
+    return ImageOps.fit(img.convert("RGB"), (size, size), Image.Resampling.LANCZOS)
+
+
 def process_split(split):
-    counts = [0] * len(CATEGORIES)
+    counts = [0] * len(CLASSES)
     for src in sorted((RAW_DIR / split).glob("*.jpg"), key=sort_key):
         label = sort_key(src)[0]
-        category = CATEGORIES[label]
+        category = category_from_filename(src.name)
 
         dst = PROCESSED_DIR / split / category / src.name
         dst.parent.mkdir(parents=True, exist_ok=True)
         with Image.open(src) as img:
-            # crop the centre to a square first so non-square images are not stretched
-            small = ImageOps.fit(img.convert("RGB"), IMAGE_SIZE, Image.Resampling.LANCZOS)
-            small.save(dst, quality=95)
+            resize_image(img, IMAGE_SIZE[0]).save(dst, quality=95)
 
         counts[label] += 1
         if counts[label] <= MINI_PER_CATEGORY:
@@ -68,7 +77,7 @@ def main():
     for split in SPLITS:
         counts = process_split(split)
         print(f"{split}: {sum(counts)} images")
-        for name, n in zip(CATEGORIES, counts):
+        for name, n in zip(CLASSES, counts):
             print(f"  {name:<16} {n:5}  mini: {min(n, MINI_PER_CATEGORY)}")
 
 
