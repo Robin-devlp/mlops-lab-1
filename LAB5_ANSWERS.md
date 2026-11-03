@@ -50,7 +50,7 @@ The page showed 2 failing and 4 skipped checks: test failed for both the push an
 
 ### Question 10: For each candidate, what did the gate decide, and with which numbers? With your test-set size, how many accuracy points does `2 * se` represent?
 
-The champion was version 2 at 0.5958, and with n = 1096 its se was 0.0148, so a candidate needed at least 0.6254. Version 3, trained with a learning rate of 0.000001, got 0.1286 and became the challenger while champion stayed on version 2. Version 4 with my best settings got 0.7646 and was promoted. With my test set 2 * se is about 3 accuracy points, and about 2.6 around the new champion's 76%.
+The champion was version 2 at 0.5958, left there from Lab 4, and with n = 1096 its se was 0.0148, so a candidate needed at least 0.6254. Version 3, trained with a learning rate of 0.000001, got 0.1286 and became the challenger while champion stayed on version 2. Version 4 with my best settings got 0.7646 and was promoted. With my test set 2 * se is about 3 accuracy points, and about 2.6 around the new champion's 76%.
 
 ![the registry after the gate: version 4 promoted to champion, version 3 kept as challenger, with the decision and both accuracies as tags](images/lab5-q10-gate.png)
 
@@ -87,7 +87,7 @@ flowchart TD
     end
 
     subgraph RUN["Running"]
-        deploy["docker pull the image by its SHA, then docker compose up"]:::human
+        deploy["docker pull the image by its SHA and run it, docker compose up still builds it locally"]:::human
         serve["inference loads models:/food11@champion at startup"]:::auto
     end
 
