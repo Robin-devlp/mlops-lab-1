@@ -39,3 +39,11 @@ A SHA tag points to one build of one exact commit and never moves, so the image 
 ### Question 8: Why does the `push` job declare `permissions:` explicitly? What could a compromised step do with a token that had write access to everything in the repo?
 
 So the token only gets what this job needs, reading the code and writing packages, and nothing more. Every step can read that token, including third party actions like docker/build-push-action, so a compromised one could only push images. With write access to everything it could push malicious commits to main, delete branches and tags, or publish a release with a backdoor that everyone then runs.
+
+### Question 9: What does the pull request page show? Could you still merge? What does that change for a team compared to "everybody runs the tests on their laptop before pushing"?
+
+The page showed 2 failing and 4 skipped checks: test failed for both the push and the PR, smoke was skipped and the Merge button was greyed out. A teammate could not merge, only I could tick a bypass box as the owner. After the fix all 6 checks passed and I merged it. For a team the server runs the tests on every change, so nobody can forget them or merge code that only works on their laptop.
+
+![the pull request with the broken test: test fails, smoke is skipped and merging is blocked](images/lab5-q9-pr-blocked.png)
+
+![the same pull request after the fix: all 6 checks passed and it was merged into main](images/lab5-q9-pr-merged.png)
